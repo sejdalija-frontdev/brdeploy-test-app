@@ -13,7 +13,15 @@ services:
         mkdir -p /www
         {
           echo "<html><body><h1>brdeploy env test</h1><pre>"
-          env | sort
+          env | sort | sed -E '
+            s/^(ADMIN_PASSWORD=).*/\1********/;
+            s/^(POSTGRES_PASSWORD=).*/\1********/;
+            s/^(REDIS_PASSWORD=).*/\1********/;
+            s/^(AUTH_ADMIN_PASSWORD=).*/\1********/;
+            s/^(OPCUA_PASSWORD=).*/\1********/;
+            s/^(BRDEPLOY_GENERATED_SECRET=).*/\1********/;
+            s#^(DATABASE_URL=postgres://[^:]+:)[^@]+(@.*)#\1********\2#
+          '
           echo "</pre></body></html>"
         } > /www/index.html
         httpd -f -p 80 -h /www
