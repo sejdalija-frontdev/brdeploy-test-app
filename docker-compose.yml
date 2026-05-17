@@ -1,0 +1,9 @@
+name: brdeploy-test-app
+
+services:
+  web:
+    image: nginx:alpine
+    env_file: .env
+    ports:
+      - "${APP_PORT}:80"
+    restart: unless-stopped
