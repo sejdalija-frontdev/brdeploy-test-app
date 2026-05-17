@@ -1,9 +1,20 @@
 name: brdeploy-test-app
 
 services:
-  web:
-    image: nginx:alpine
+  env-viewer:
+    image: busybox:1.36
     env_file: .env
     ports:
       - "${APP_PORT}:80"
+    command:
+      - sh
+      - -c
+      - |
+        mkdir -p /www
+        {
+          echo "<html><body><h1>brdeploy env test</h1><pre>"
+          env | sort
+          echo "</pre></body></html>"
+        } > /www/index.html
+        httpd -f -p 80 -h /www
     restart: unless-stopped
