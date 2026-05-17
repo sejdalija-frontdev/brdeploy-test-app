@@ -1,18 +1,29 @@
 name: brdeploy-test-app
 
 services:
-  secret-api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: brdeploy-test-secret-api:local
+  env-viewer:
+    image: busybox:1.36
     env_file: .env
     ports:
-      - "${APP_PORT}:8080"
-    volumes:
-      - secret-api-data:/app/data
+      - "${APP_PORT}:80"
+    command:
+      - sh
+      - -c
+      - |
+        mkdir -p /www
+        {
+          echo "<html><body><h1>brdeploy env test</h1><pre>"
+          env | sort | sed -E '
+            s/^(ADMIN_PASSWORD=).*/\1********/;
+            s/^(POSTGRES_PASSWORD=).*/\1********/;
+            s/^(REDIS_PASSWORD=).*/\1********/;
+            s/^(AUTH_ADMIN_PASSWORD=).*/\1********/;
+            s/^(OPCUA_PASSWORD=).*/\1********/;
+            s/^(SECRETS_ENCRYPTION_KEY=).*/\1********/;
+            s/^(BRDEPLOY_GENERATED_SECRET=).*/\1********/;
+            s#^(DATABASE_URL=postgres://[^:]+:)[^@]+(@.*)#\1********\2#
+          '
+          echo "</pre></body></html>"
+        } > /www/index.html
+        httpd -f -p 80 -h /www
     restart: unless-stopped
-
-volumes:
-  secret-api-data:
-    driver: local
